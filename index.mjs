@@ -242,7 +242,7 @@ const AppStart = async () => {
     await scrollToFind(
       page,
       `span[aria-label="Перейти к беседе: ${chatUserName}"]`,
-      100
+      6
     );
 
     await page.waitForSelector(
