@@ -1,0 +1,19 @@
+{
+  "name": "pupeteer",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "node --experimental-modules ./index.mjs",
+    "stop": "taskkill /F /IM node.exe"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^8.0.0",
+    "lodash": "^4.17.15",
+    "puppeteer": "^1.19.0",
+    "puppeteer-core": "^1.19.0",
+    "unzipper": "^0.10.1",
+    "zip-folder": "^1.0.0"
+  }
+}
