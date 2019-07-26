@@ -12,21 +12,20 @@ import {
   autoScroll,
   scrollToFind
 } from "../utils/pup-helpers.mjs";
-import { walker } from "../utils/walker.mjs";
-
-const VK_URL = "https://vk.com";
-const INPUT_PDF_SELECTOR = '.moxie-shim > input[type="file"]';
-const PDF_CONVERTER_URL = "https://imagetopdf.com/ru/";
-const LAST_SELECTOR_PDF_DOWNLOAD =
-  ".plupload_file:last-child .plupload_file_button";
-const DOWNLOAD_BUTTON_PDF_SELECTOR = "#download-all";
-const LOGIN_FIELD_VK_SELECTOR = "#index_email";
-const PASSWORD_FIELD_VK_SELECTOR = "#index_pass";
-const LOGIN_BUTTON_SELECTOR = "#index_login_button";
-const MESSAGES_VK_BUTTON_SELECTOR = "a[href='/im']";
-const timeValueToRepeatScroll = 16;
-const INPUT_TYPE_FILE_SELECTOR = "input[type=file]";
-const BUTTON_SEND_VK_SELECTOR = ".im-send-btn_send";
+import {
+  VK_URL,
+  INPUT_PDF_SELECTOR,
+  PDF_CONVERTER_URL,
+  LAST_SELECTOR_PDF_DOWNLOAD,
+  DOWNLOAD_BUTTON_PDF_SELECTOR,
+  LOGIN_FIELD_VK_SELECTOR,
+  PASSWORD_FIELD_VK_SELECTOR,
+  LOGIN_BUTTON_SELECTOR,
+  MESSAGES_VK_BUTTON_SELECTOR,
+  timeValueToRepeatScroll,
+  INPUT_TYPE_FILE_SELECTOR,
+  BUTTON_SEND_VK_SELECTOR
+} from "../config.mjs";
 
 export default class PartyMaker {
   constructor({
@@ -56,7 +55,7 @@ export default class PartyMaker {
       await this.VKUpload();
       await this.closeApp();
     } catch (error) {
-      console.log("error photosToPDF app option", error);
+      console.log("error in photosToPDF mode", error);
     }
   };
 
@@ -87,7 +86,7 @@ export default class PartyMaker {
         if (error.code === "ENOENT") {
           await mkdirp(path);
         } else {
-          console.log("error", error);
+          console.log("error in checkAllFolders", error);
         }
       }
     });
@@ -131,12 +130,7 @@ export default class PartyMaker {
   VKUpload = async () => {
     try {
       await this.page.goto(VK_URL);
-
-      /// rename pdf file
-      await rename(
-        path.join(this.pathToPDF, "imagetopdf.pdf"),
-        path.join(this.pathToPDF, `${this.nameOfPDF}.pdf`)
-      );
+      await this.page.waitForNavigation();
 
       /// input form values to enter VK
       await inputValueToField(this.page, LOGIN_FIELD_VK_SELECTOR, this.loginVK);
@@ -160,9 +154,15 @@ export default class PartyMaker {
         timeValueToRepeatScroll
       );
 
-      await this.page.waitForSelector(this.chatSpanSelector);
+      /// rename pdf file
+      await rename(
+        path.join(this.pathToPDF, "imagetopdf.pdf"),
+        path.join(this.pathToPDF, `${this.nameOfPDF}.pdf`)
+      );
 
       /// get chat id
+      await this.page.waitForSelector(this.chatSpanSelector);
+
       const idOfChat = await this.page.$eval(
         this.chatSpanSelector,
         element => element.parentNode.parentNode.parentNode.dataset.listId
@@ -182,13 +182,17 @@ export default class PartyMaker {
 
       await doSelector(this.page, BUTTON_SEND_VK_SELECTOR, "click");
     } catch (error) {
-      console.log("error", error);
+      console.log("error in VKUpload", error);
     }
   };
 
   closeApp = async () => {
-    /// close browser
-    await deleteFolder(this.pathToPDF);
-    await this.browser.close();
+    try {
+      /// close browser
+      await deleteFolder(this.pathToPDF);
+      await this.browser.close();
+    } catch (error) {
+      console.log("error in closeApp", error);
+    }
   };
 }
