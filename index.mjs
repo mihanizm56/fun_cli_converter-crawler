@@ -11,7 +11,7 @@ import unzip from "unzipper";
 dotenv.config();
 
 const VK_URL = "https://vk.com";
-const chatUserName = "Целевой прием 2019";
+const chatUserName = "Миша Кожевников";
 const { uniqueId } = lodash;
 const pathToShot = path.join(process.cwd(), "screenshots");
 const time = new Date().getTime();
@@ -100,8 +100,8 @@ const filesBundleUpload = async (page, uploadDir, inputSelector) => {
   walker(
     uploadDir,
     file =>
-      new Promise(resolve => {
-        uploadFile(page, file, inputSelector);
+      new Promise(async resolve => {
+        await uploadFile(page, file, inputSelector);
         resolve();
       }),
 
@@ -161,11 +161,14 @@ const uploadPhotosAndConvertToPdf = async page => {
   const pdfConverterUrl = "https://imagetopdf.com/ru/";
 
   // init
-  await page.goto(pdfConverterUrl, { waitUntil: "networkidle0" });
+  await page.goto(pdfConverterUrl);
+  // await Promise.race([
+  //   page.waitForNavigation({ waitUntil: "load" }),
+  //   page.waitForNavigation({ waitUntil: "networkidle0" })
+  // ]);
 
-  await page.waitFor(2000);
   await page.waitForSelector(inputPdfSelector);
-
+  // await page.waitFor(2000);
   // upload bundle
   await filesBundleUpload(page, uploadPhotosDir, inputPdfSelector);
 
@@ -220,6 +223,11 @@ const AppStart = async () => {
     await uploadPhotosAndConvertToPdf(page);
     await page.waitFor(1000);
     await page.goto(VK_URL);
+
+    await Promise.race([
+      page.waitForNavigation({ waitUntil: "load" }),
+      page.waitForNavigation({ waitUntil: "networkidle0" })
+    ]);
 
     /// login form
     await page.$eval(
