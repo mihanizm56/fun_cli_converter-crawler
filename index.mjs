@@ -11,7 +11,7 @@ import unzip from "unzipper";
 dotenv.config();
 
 const VK_URL = "https://vk.com";
-const chatUserName = "Миша Кожевников";
+const chatUserName = "Целевой прием 2019";
 const { uniqueId } = lodash;
 const pathToShot = path.join(process.cwd(), "screenshots");
 const time = new Date().getTime();
@@ -157,15 +157,14 @@ const unZipFile = (pathToZip, pathToOut) => {
 const uploadPhotosAndConvertToPdf = async page => {
   /// start
   const uploadPhotosDir = path.join(process.cwd(), "files", "photos_to_pdf");
-  const inputPdfSelector = '.moxie-shim.moxie-shim-html5 > input[type="file"]';
+  const inputPdfSelector = '.moxie-shim > input[type="file"]';
   const pdfConverterUrl = "https://imagetopdf.com/ru/";
 
   // init
   await page.goto(pdfConverterUrl, { waitUntil: "networkidle0" });
 
-  await page.waitForSelector(
-    '.moxie-shim.moxie-shim-html5 > input[type="file"]'
-  );
+  await page.waitFor(2000);
+  await page.waitForSelector(inputPdfSelector);
 
   // upload bundle
   await filesBundleUpload(page, uploadPhotosDir, inputPdfSelector);
