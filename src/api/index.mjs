@@ -3,10 +3,11 @@ import dotenv from "dotenv";
 import path from "path";
 import lodash from "lodash";
 import fs from "fs";
-import { access, mkdir, readdir, readFile } from "./fs-promises.mjs";
+import { access, mkdir, readdir, readFile, rename } from "./fs-promises.mjs";
 import { walker } from "./walker.mjs";
 import zipFolder from "zip-folder";
 import unzip from "unzipper";
+import rimraf from "rimraf-promise";
 
 dotenv.config();
 
@@ -14,6 +15,8 @@ const VK_URL = "https://vk.com";
 const chatUserName = "Миша Кожевников";
 const { uniqueId } = lodash;
 const pathToShot = path.join(process.cwd(), "screenshots");
+const pathToPhotos = path.join(process.cwd(), "files", "photos_to_pdf");
+const pathToPDF = path.join(process.cwd(), "files", "download_files");
 const time = new Date().getTime();
 const filename = `${time}_screen.png`;
 
@@ -109,50 +112,50 @@ const filesBundleUpload = async (page, uploadDir, inputSelector) => {
   );
 };
 
-async function imagesToPdf(paths, resultPath) {
-  if (!Array.isArray(paths) || paths.length === 0) {
-    throw new Error("Must have at least one path in array");
-  }
-  const pdfWriter = hummus.createWriter(resultPath);
-  paths.forEach(path => {
-    const { width, height } = pdfWriter.getImageDimensions(path);
-    const page = pdfWriter.createPage(0, 0, width, height);
-    pdfWriter.startPageContentContext(page).drawImage(0, 0, path);
-    pdfWriter.writePage(page);
-  });
-  pdfWriter.end();
-  await streamToPromise(pdfWriter);
-  return resultPath;
-}
+// async function imagesToPdf(paths, resultPath) {
+//   if (!Array.isArray(paths) || paths.length === 0) {
+//     throw new Error("Must have at least one path in array");
+//   }
+//   const pdfWriter = hummus.createWriter(resultPath);
+//   paths.forEach(path => {
+//     const { width, height } = pdfWriter.getImageDimensions(path);
+//     const page = pdfWriter.createPage(0, 0, width, height);
+//     pdfWriter.startPageContentContext(page).drawImage(0, 0, path);
+//     pdfWriter.writePage(page);
+//   });
+//   pdfWriter.end();
+//   await streamToPromise(pdfWriter);
+//   return resultPath;
+// }
 
-const makeZip = () =>
-  new Promise(resolve => {
-    const pathMergeFromFolder = path.join(
-      process.cwd(),
-      "files",
-      "photos_to_pdf"
-    );
-    const pathMergeToFile = path.join(
-      process.cwd(),
-      "files",
-      "zip",
-      "test.zip"
-    );
+// const makeZip = () =>
+//   new Promise(resolve => {
+//     const pathMergeFromFolder = path.join(
+//       process.cwd(),
+//       "files",
+//       "photos_to_pdf"
+//     );
+//     const pathMergeToFile = path.join(
+//       process.cwd(),
+//       "files",
+//       "zip",
+//       "test.zip"
+//     );
 
-    zipFolder(pathMergeFromFolder, pathMergeToFile, error => {
-      if (error) {
-        console.log("error", error);
-        reject();
-      }
+//     zipFolder(pathMergeFromFolder, pathMergeToFile, error => {
+//       if (error) {
+//         console.log("error", error);
+//         reject();
+//       }
 
-      console.log("zipped!!!");
-      resolve();
-    });
-  });
+//       console.log("zipped!!!");
+//       resolve();
+//     });
+//   });
 
-const unZipFile = (pathToZip, pathToOut) => {
-  fs.createReadStream(pathToZip).pipe(unzip.Extract({ path: pathToOut }));
-};
+// const unZipFile = (pathToZip, pathToOut) => {
+//   fs.createReadStream(pathToZip).pipe(unzip.Extract({ path: pathToOut }));
+// };
 
 const uploadPhotosAndConvertToPdf = async page => {
   /// start
@@ -162,13 +165,11 @@ const uploadPhotosAndConvertToPdf = async page => {
 
   // init
   await page.goto(pdfConverterUrl);
-  // await Promise.race([
-  //   page.waitForNavigation({ waitUntil: "load" }),
-  //   page.waitForNavigation({ waitUntil: "networkidle0" })
-  // ]);
+
+  await page.waitFor(3000);
 
   await page.waitForSelector(inputPdfSelector);
-  // await page.waitFor(2000);
+
   // upload bundle
   await filesBundleUpload(page, uploadPhotosDir, inputPdfSelector);
 
@@ -190,20 +191,46 @@ const uploadPhotosAndConvertToPdf = async page => {
   // browser.close();
 };
 
+const renamePdfToCorrectName = async () => {
+  let usageName;
+
+  await walker(
+    pathToPhotos,
+    file =>
+      new Promise(resolve => {
+        const name = path.basename(file);
+        if (name.indexOf("1_") !== -1) {
+          usageName = name.split("_")[1].split(".")[0];
+          console.log(usageName);
+        }
+        resolve();
+      }),
+    () => Promise.resolve()
+  );
+
+  const fileToRename = path.join(pathToPDF, "imagetopdf.pdf");
+  const test = path.join(pathToPDF, `${usageName}.pdf`);
+
+  await rename(fileToRename, test);
+};
+
 const AppStart = async () => {
   const login = process.env.LOGIN;
   const password = process.env.PASSWORD;
 
   /// check folder if exists
-  try {
-    await access(pathToShot);
-  } catch (error) {
-    if (error.code === "ENOENT") {
-      await mkdir(pathToShot);
-    } else {
-      console.log("error", error);
-    }
-  }
+  // try {
+  //   await access(pathToShot);
+  // } catch (error) {
+  //   if (error.code === "ENOENT") {
+  //     await mkdir(pathToShot);
+  //   } else {
+  //     console.log("error", error);
+  //   }
+  // }
+
+  await rimraf(pathToPDF);
+  await mkdir(pathToPDF);
 
   //////////////// TODO make an attention on the whole folders structure is ready
 
@@ -221,13 +248,13 @@ const AppStart = async () => {
 
     /// make some pdfs
     await uploadPhotosAndConvertToPdf(page);
+
+    /// go to vk page
     await page.waitFor(1000);
     await page.goto(VK_URL);
 
-    await Promise.race([
-      page.waitForNavigation({ waitUntil: "load" }),
-      page.waitForNavigation({ waitUntil: "networkidle0" })
-    ]);
+    /// rename pdf file
+    await renamePdfToCorrectName();
 
     /// login form
     await page.$eval(
