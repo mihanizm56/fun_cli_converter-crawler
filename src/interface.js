@@ -29,33 +29,33 @@
 
 // party.photosToPDF();
 
-const React = require("react");
-const { render, Color } = require("ink");
+import React from "react";
+import { render, Color, Box, Text } from "ink";
+import TextInput from "ink-text-input";
 
-class Counter extends React.Component {
+class Interface extends React.Component {
   constructor() {
     super();
 
     this.state = {
-      counter: 0
+      text: ""
     };
+
+    this.handleChange = this.handleChange.bind(this);
   }
 
-  componentDidMount() {
-    this.timer = setInterval(() => {
-      this.setState(prevState => ({
-        counter: prevState.counter + 1
-      }));
-    }, 100);
-  }
-
-  componentWillUnmount() {
-    clearInterval(this.timer);
+  handleChange(text) {
+    this.setState({ text });
   }
 
   render() {
-    return <Color green>{this.state.counter} tests passed</Color>;
+    return (
+      <Box>
+        <Text bold={true}>Вас приветствует mihanizm56</Text>
+        <TextInput />
+      </Box>
+    );
   }
 }
 
-render(<Counter />);
+render(<Interface />);
