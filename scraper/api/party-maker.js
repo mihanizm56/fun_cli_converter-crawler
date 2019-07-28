@@ -40,17 +40,19 @@ class PartyMaker {
 		this.filename = filename;
 		this.login = login;
 		this.password = password;
-		this.chatSpanSelector = chooseTheChatTemplate(chatname);
+		this.chatname = chatname;
 	}
 
 	photosToPDF = async () => {
+		console.log("///////", chooseTheChatTemplate(this.chatname));
+
 		try {
 			await this.checkAllFolders();
 			await this.startApp();
 			await this.pdfWork();
 			await this.page.waitFor(1000);
 			await this.VKUpload();
-			// await this.closeApp();
+			await this.closeApp();
 		} catch (error) {
 			console.log("error in photosToPDF mode", error);
 		}
@@ -71,6 +73,8 @@ class PartyMaker {
 
 	checkAllFolders = async () => {
 		const allNecessaryFolders = [PATH_TO_PDF, PATH_TO_PHOTOS, PATH_TO_SCREENS];
+
+		await deleteFolder(PATH_TO_PDF);
 
 		const promises = allNecessaryFolders.map(async path => {
 			try {
@@ -121,9 +125,9 @@ class PartyMaker {
 	};
 
 	VKUpload = async () => {
+		const chatSpanSelector = chooseTheChatTemplate(this.chatname);
 		try {
 			await this.page.goto(VK_URL);
-			await this.page.waitForNavigation();
 
 			/// input form values to enter VK
 			await inputValueToField(this.page, LOGIN_FIELD_VK_SELECTOR, this.login);
@@ -141,11 +145,7 @@ class PartyMaker {
 			await this.page.waitFor(1000);
 
 			/// find the chat
-			await scrollToFind(
-				this.page,
-				this.chatSpanSelector,
-				timeValueToRepeatScroll
-			);
+			await scrollToFind(this.page, chatSpanSelector, timeValueToRepeatScroll);
 
 			/// rename pdf file
 			await rename(
@@ -154,10 +154,10 @@ class PartyMaker {
 			);
 
 			/// get chat id
-			await this.page.waitForSelector(this.chatSpanSelector);
+			await this.page.waitForSelector(chatSpanSelector);
 
 			const idOfChat = await this.page.$eval(
-				this.chatSpanSelector,
+				chatSpanSelector,
 				element => element.parentNode.parentNode.parentNode.dataset.listId
 			);
 
@@ -182,7 +182,6 @@ class PartyMaker {
 	closeApp = async () => {
 		try {
 			/// close browser
-			await deleteFolder(PATH_TO_PDF);
 			await this.browser.close();
 		} catch (error) {
 			console.log("error in closeApp", error);

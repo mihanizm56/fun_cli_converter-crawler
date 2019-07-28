@@ -1,46 +1,10 @@
-// import dotenv from "dotenv";
-// import PartyMaker from "./api/party-maker.js";
-// import path from "path";
-// import fs from "fs";
-// import {
-//   PATH_TO_STATIC,
-//   PATH_TO_PDF,
-//   PATH_TO_PHOTOS,
-//   PATH_TO_SCREENS
-// } from "./config.js";
-
-// dotenv.config();
-
-// /// users settings
-// const nameOfPDF = "test_name";
-// const chatName = "Миша Кожевников";
-// const loginVK = process.env.LOGIN;
-// const passwordVK = process.env.PASSWORD;
-
-// const party = new PartyMaker({
-// nameOfPDF,
-//   loginVK,
-//   passwordVK,
-//   chatName
-// });
-
-// party.photosToPDF();
-
 const React = require("react");
 const { render, Color, Box, Text, AppContext } = require("ink");
 const { UncontrolledTextInput } = require("ink-text-input");
 const BigText = require("ink-big-text");
 const Gradient = require("ink-gradient");
 const { PartyMaker } = require("../scraper/api/party-maker");
-
-const textParser = textLine => {
-	const paramsArray = textLine.split("!");
-	const login = paramsArray[0];
-	const password = paramsArray[1];
-	const filename = paramsArray[2];
-	const chatname = paramsArray[3];
-	return { login, password, filename, chatname };
-};
+const { textParser } = require("./utils");
 
 class Interface extends React.Component {
 	constructor() {
