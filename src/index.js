@@ -1,6 +1,6 @@
 const React = require("react");
 const importJsx = require("import-jsx");
-const { render } = require("ink");
-const App = importJsx("./interface");
+const { render, AppContext } = require("ink");
+const App = importJsx("./app-module.jsx");
 
 render(React.createElement(App));

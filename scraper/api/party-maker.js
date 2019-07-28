@@ -44,8 +44,6 @@ class PartyMaker {
 	}
 
 	photosToPDF = async () => {
-		console.log("///////", chooseTheChatTemplate(this.chatname));
-
 		try {
 			await this.checkAllFolders();
 			await this.startApp();
