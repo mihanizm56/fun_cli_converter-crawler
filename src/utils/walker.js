@@ -1,7 +1,7 @@
-import fs from "fs";
-import path from "path";
+const fs = require("fs");
+const path = require("path");
 
-export const walker = (dir, callbackOnFile, callBackOnFolder) => {
+module.exports.walker = (dir, callbackOnFile, callBackOnFolder) => {
   return new Promise((resolve, reject) => {
     fs.readdir(dir, (err, list) => {
       if (err) return reject(err);

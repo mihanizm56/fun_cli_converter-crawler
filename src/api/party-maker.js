@@ -1,8 +1,15 @@
-import puppeteer from "puppeteer";
-import path from "path";
-import { access, readdir, readFile, rename } from "../utils/fs-promises.mjs";
-import mkdirp from "mkdirp";
-import {
+import { builtinModules } from "module";
+
+const puppeteer = require("puppeteer");
+const path = require("path");
+const {
+  access,
+  readdir,
+  readFile,
+  rename
+} = require("../utils/fs-promises.js");
+const mkdirp = require("mkdirp");
+const {
   doSelector,
   uploadFile,
   filesBundleUpload,
@@ -11,8 +18,8 @@ import {
   deleteFolder,
   autoScroll,
   scrollToFind
-} from "../utils/pup-helpers.mjs";
-import {
+} = require("../utils/pup-helpers.js");
+const {
   VK_URL,
   INPUT_PDF_SELECTOR,
   PDF_CONVERTER_URL,
@@ -25,9 +32,9 @@ import {
   timeValueToRepeatScroll,
   INPUT_TYPE_FILE_SELECTOR,
   BUTTON_SEND_VK_SELECTOR
-} from "../config.mjs";
+} = require("../config.js");
 
-export default class PartyMaker {
+class PartyMaker {
   constructor({
     pathToPDF,
     pathToPhotos,
@@ -196,3 +203,5 @@ export default class PartyMaker {
     }
   };
 }
+
+module.exports = PartyMaker;

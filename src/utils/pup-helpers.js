@@ -1,7 +1,7 @@
-import { walker } from "./walker.mjs";
-import rimraf from "rimraf-promise";
+const { walker } = require("./walker.js");
+const rimraf = require("rimraf-promise");
 
-export const doSelector = async (page, selector, event) => {
+module.exports.doSelector = async (page, selector, event) => {
   try {
     await page.waitForSelector(selector);
     await page.evaluate(
@@ -16,12 +16,12 @@ export const doSelector = async (page, selector, event) => {
   }
 };
 
-export const uploadFile = async (page, pathToFile, formSelector) => {
+module.exports.uploadFile = async (page, pathToFile, formSelector) => {
   const input = await page.$(formSelector);
   await input.uploadFile(pathToFile);
 };
 
-export const filesBundleUpload = async (
+module.exports.filesBundleUpload = async (
   page,
   uploadDir,
   inputSelector,
@@ -39,7 +39,7 @@ export const filesBundleUpload = async (
   );
 };
 
-export const inputValueToField = async (page, inputSelector, value) => {
+module.exports.inputValueToField = async (page, inputSelector, value) => {
   await page.$eval(
     inputSelector,
     (input, value) => (input.value = value),
@@ -47,12 +47,12 @@ export const inputValueToField = async (page, inputSelector, value) => {
   );
 };
 
-export const chooseTheChatTemplate = chatName =>
+module.exports.chooseTheChatTemplate = chatName =>
   `span[aria-label="Перейти к беседе: ${chatName}"]`;
 
-export const deleteFolder = async pathToFolder => await rimraf(pathToFolder);
+module.exports.deleteFolder = async pathToFolder => await rimraf(pathToFolder);
 
-export const autoScroll = async page => {
+module.exports.autoScroll = async page => {
   await page.evaluate(async () => {
     var totalHeight = 0;
     var distance = 100;
@@ -69,7 +69,7 @@ export const autoScroll = async page => {
   });
 };
 
-export const scrollToFind = async (page, selector, ms) => {
+module.exports.scrollToFind = async (page, selector, ms) => {
   try {
     await page.evaluate(
       (ms, selector) => {
