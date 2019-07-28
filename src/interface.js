@@ -18,10 +18,7 @@
 // const passwordVK = process.env.PASSWORD;
 
 // const party = new PartyMaker({
-//   pathToPDF,
-//   pathToPhotos,
-//   nameOfPDF,
-//   screensPath,
+// nameOfPDF,
 //   loginVK,
 //   passwordVK,
 //   chatName
@@ -29,33 +26,62 @@
 
 // party.photosToPDF();
 
-import React from "react";
-import { render, Color, Box, Text } from "ink";
-import TextInput from "ink-text-input";
+const React = require("react");
+const { render, Color, Box, Text, AppContext } = require("ink");
+const { UncontrolledTextInput } = require("ink-text-input");
+const BigText = require("ink-big-text");
+const Gradient = require("ink-gradient");
+const { PartyMaker } = require("../scraper/api/party-maker");
+
+const textParser = textLine => {
+	const paramsArray = textLine.split("!");
+	const login = paramsArray[0];
+	const password = paramsArray[1];
+	const filename = paramsArray[2];
+	const chatname = paramsArray[3];
+	return { login, password, filename, chatname };
+};
 
 class Interface extends React.Component {
-  constructor() {
-    super();
+	constructor() {
+		super();
 
-    this.state = {
-      text: ""
-    };
+		this.handleSubmit = this.handleSubmit.bind(this);
+	}
 
-    this.handleChange = this.handleChange.bind(this);
-  }
+	handleSubmit(text) {
+		const { login, password, filename, chatname } = textParser(text);
+		console.log("result", { login, password, filename, chatname });
+		if (login && password && filename && chatname) {
+			console.log("full data");
+			const party = new PartyMaker({ login, password, filename, chatname });
 
-  handleChange(text) {
-    this.setState({ text });
-  }
+			party.photosToPDF();
+		} else {
+			console.log("not full data, please enter completed string");
+		}
+	}
 
-  render() {
-    return (
-      <Box>
-        <Text bold={true}>Вас приветствует mihanizm56</Text>
-        <TextInput />
-      </Box>
-    );
-  }
+	render() {
+		return (
+			<AppContext.Consumer>
+				{({ exit }) => (
+					<React.Fragment>
+						{/* <Gradient name="summer">
+							<BigText text="I am the copier" />
+						</Gradient> */}
+						<Text>Последовательно введите, разделяя знаком восклицания:</Text>
+						<Text>Ваш логин вконтакте</Text>
+						<Text>Ваш пароль вконтакте</Text>
+						<Text>Название выгружаемого файла</Text>
+						<Text>Название беседы вконтакте для выгрузки файла</Text>
+						<Text>Например login!123!Файл!Агеева Ада</Text>
+						<UncontrolledTextInput onSubmit={this.handleSubmit} />
+					</React.Fragment>
+				)}
+			</AppContext.Consumer>
+		);
+	}
 }
 
-render(<Interface />);
+module.exports = Interface;
